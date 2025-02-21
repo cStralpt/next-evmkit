@@ -9,8 +9,8 @@ import "@rainbow-me/rainbowkit/styles.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Next-EVM Kit",
-  description: "Build dApps with Next.js and EVM chains.",
+  title: "Next EVMKit",
+  description: "Your all-in-one starter kit for building web3 applications",
 };
 
 export default function RootLayout({
