@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-sans: "Inter", system-ui, sans-serif;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-retro-purple/10;
+  }
+  body {
+    @apply bg-retro-bg text-retro-purple;
+    font-family: var(--font-sans);
+  }
+}
+
+/* Custom retro styles */
+@layer utilities {
+  .retro-shadow {
+    @apply shadow-[4px_4px_0px_0px_rgba(67,53,167,0.3)];
+  }
+  
+  .retro-border {
+    @apply border-2 border-retro-purple/10;
+  }
+  
+  .retro-glow {
+    @apply relative;
+  }
+  
+  .retro-glow::after {
+    @apply content-[''] absolute -inset-1 bg-retro-blue opacity-20 blur-sm rounded-lg -z-10;
+  }
+}
