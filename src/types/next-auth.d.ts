@@ -6,11 +6,13 @@ declare module "next-auth" {
     chainId?: string;
     accessToken?: string;
     user: {
+      id?: string;
       address?: string;
     } & DefaultSession["user"];
   }
 
   interface User {
+    id: string;
     address: string;
     chainId: string;
   }

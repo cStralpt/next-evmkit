@@ -137,28 +137,93 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   session: {
-    strategy: "jwt" as const,
+    strategy: "database",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   pages: {
     signIn: "/auth/signin",
   },
   callbacks: {
-    async session({ session, token }) {
-      return {
-        ...session,
-        user: {
-          ...session.user,
-          id: token.sub,
-        },
+    async session({ session, user }) {
+      if (session.user) {
+        session.user.id = user.id;
+        // Fetch the user's accounts to ensure we have the latest data
+        const userWithAccounts = await prisma.user.findUnique({
+          where: { id: user.id },
+          include: { accounts: true },
+        });
+        if (userWithAccounts?.address) {
+          session.user.address = userWithAccounts.address;
+        }
       }
+      return session;
     },
-    async jwt({ token, user }) {
-      if (user) {
-        token.sub = user.id
+    async signIn({ user, account, profile }) {
+      try {
+        if (!user.email) {
+          console.error("Sign in failed: No email provided");
+          return false;
+        }
+
+        // Check if user exists
+        const existingUser = await prisma.user.findUnique({
+          where: { email: user.email },
+          include: { accounts: true },
+        });
+
+        if (existingUser) {
+          // Update existing user
+          await prisma.user.update({
+            where: { id: existingUser.id },
+            data: {
+              name: user.name || existingUser.name,
+              image: user.image || existingUser.image,
+              updatedAt: new Date(),
+            },
+          });
+
+          // Ensure account connection exists
+          if (account && !existingUser.accounts.some(acc => acc.provider === account.provider)) {
+            await prisma.account.create({
+              data: {
+                userId: existingUser.id,
+                type: account.type,
+                provider: account.provider,
+                providerAccountId: account.providerAccountId,
+                access_token: account.access_token,
+                refresh_token: account.refresh_token,
+                expires_at: account.expires_at,
+                token_type: account.token_type,
+                scope: account.scope,
+                id_token: account.id_token,
+                session_state: account.session_state,
+              },
+            });
+          }
+        }
+
+        return true;
+      } catch (error) {
+        console.error("Sign in callback error:", error);
+        return false;
       }
-      return token
     },
   },
-  // Add debug logs in development
+  events: {
+    async signIn({ user, account }) {
+      try {
+        console.log("Sign in event:", { userId: user.id, provider: account?.provider });
+      } catch (error) {
+        console.error("Sign in event error:", error);
+      }
+    },
+    async createUser({ user }) {
+      try {
+        console.log("Create user event:", { userId: user.id });
+      } catch (error) {
+        console.error("Create user event error:", error);
+      }
+    },
+  },
   debug: process.env.NODE_ENV === "development",
-}
+};
