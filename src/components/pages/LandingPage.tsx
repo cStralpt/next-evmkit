@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useSmartAccount } from "@/hooks/useSmartAccount";
 import { useAccount } from "wagmi";
 import { useSession } from "next-auth/react";
@@ -14,6 +15,26 @@ export default function LandingPage() {
   const { address, isConnected } = useAccount();
   const { data: session } = useSession();
   const { isAuthenticated, loading: siweLoading, user } = useSiweAuth();
+  const [smartAccountAddress, setSmartAccountAddress] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function getAddress() {
+      if (smartAccount) {
+        try {
+          const addr = await smartAccount.getAccountAddress();
+          console.log("EOA Address (wallet):", address);
+          console.log("Smart Account Address:", addr);
+          console.log("User table address:", session?.user?.address);
+          setSmartAccountAddress(addr);
+        } catch (error) {
+          console.error("Error getting smart account address:", error);
+        }
+      } else {
+        setSmartAccountAddress(null);
+      }
+    }
+    getAddress();
+  }, [smartAccount, address, session?.user?.address]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
@@ -55,7 +76,11 @@ export default function LandingPage() {
                     Loading...
                   </span>
                 ) : smartAccount ? (
-                  "Ready"
+                  <span>
+                    Ready - {smartAccountAddress ? 
+                      `${smartAccountAddress.slice(0, 6)}...${smartAccountAddress.slice(-4)}` : 
+                      "Loading address..."}
+                  </span>
                 ) : (
                   "Not Created"
                 )}</span>
