@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { createWalletClient, custom, type WalletClient, type Account } from 'viem'
-import { polygonMumbai } from 'viem/chains'
+import { polygonZkEvmCardona } from 'viem/chains'
 import { useSession } from 'next-auth/react'
 import { privateKeyToAccount } from 'viem/accounts'
 
@@ -66,7 +66,7 @@ export function useEmbeddedWallet() {
         // Create wallet client with the account
         const client = createWalletClient({
           account: newAccount,
-          chain: polygonMumbai,
+          chain: polygonZkEvmCardona,
           transport: custom({
             async request({ method, params }) {
               // Handle basic wallet methods
@@ -74,7 +74,7 @@ export function useEmbeddedWallet() {
                 return [newAccount.address]
               }
               if (method === 'eth_chainId') {
-                return polygonMumbai.id
+                return polygonZkEvmCardona.id
               }
               // Add more method handlers as needed
               throw new Error(`Method ${method} not supported`)

@@ -1,7 +1,7 @@
 "use client"
 
 import { createPublicClient, http, type WalletClient } from 'viem'
-import { polygonMumbai } from 'viem/chains'
+import { polygonZkEvmCardona } from 'viem/chains'
 import { createSmartAccountClient } from "@biconomy/account"
 import { DEFAULT_ENTRYPOINT_ADDRESS } from "@biconomy/account"
 import { Bundler } from '@biconomy/bundler'
@@ -18,7 +18,7 @@ const paymaster = new BiconomyPaymaster({
 })
 
 const publicClient = createPublicClient({
-  chain: polygonMumbai,
+  chain: polygonZkEvmCardona,
   transport: http()
 })
 
