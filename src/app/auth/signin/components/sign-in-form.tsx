@@ -1,16 +1,19 @@
 "use client"
 
 import { signIn } from "next-auth/react"
-import { MessageCircle, Mail, Apple, Loader2 } from "lucide-react"
+import { MessageCircle, Mail, Apple, Loader2, Wallet } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 import { useSmartAccount } from "@/hooks/useSmartAccount"
 import { useAccount } from "wagmi"
+import { useEmbeddedWallet } from "@/hooks/useEmbeddedWallet"
+import { SiweButton } from "@/components/auth/SiweButton"
 
 export default function SignInForm() {
   const [isLoading, setIsLoading] = useState<string | null>(null)
   const { smartAccount, loading: smartAccountLoading } = useSmartAccount()
   const { address } = useAccount()
+  const { account: embeddedAccount, loading: embeddedWalletLoading } = useEmbeddedWallet()
 
   const handleSignIn = async (provider: string) => {
     try {
@@ -86,14 +89,20 @@ export default function SignInForm() {
           </span>
         </div>
       </div>
-      <div className="flex items-center justify-center">
+      <div className="flex items-center justify-center gap-4">
         <button
           onClick={() => handleSignIn("credentials")}
-          disabled={isLoading === "credentials" || smartAccountLoading}
-          className="text-sm text-muted-foreground underline hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={isLoading === "credentials" || smartAccountLoading || embeddedWalletLoading}
+          className="flex items-center gap-2 px-4 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Web3 Wallet
+          {isLoading === "credentials" || embeddedWalletLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Wallet className="h-4 w-4" />
+          )}
+          Use Embedded Wallet
         </button>
+        <SiweButton />
       </div>
     </div>
   )

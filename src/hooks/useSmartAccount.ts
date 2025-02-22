@@ -5,11 +5,13 @@ import { useAccount, useWalletClient } from 'wagmi'
 import { BiconomySmartAccountV2 } from '@biconomy/account'
 import { createSmartAccount } from '@/config/biconomy'
 import { useSession } from 'next-auth/react'
+import { useEmbeddedWallet } from './useEmbeddedWallet'
 
 export function useSmartAccount() {
   const { address } = useAccount()
   const { data: walletClient } = useWalletClient()
   const { data: session } = useSession()
+  const { walletClient: embeddedWalletClient } = useEmbeddedWallet()
   const [smartAccount, setSmartAccount] = useState<BiconomySmartAccountV2 | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
@@ -20,12 +22,14 @@ export function useSmartAccount() {
         setLoading(true)
         setError(null)
 
-        if (!address || !session?.user || !walletClient) {
+        // Check if we have either a connected wallet or embedded wallet
+        const activeWalletClient = walletClient || embeddedWalletClient
+        if (!activeWalletClient || !session?.user) {
           setSmartAccount(null)
           return
         }
 
-        const smartAccount = await createSmartAccount(walletClient)
+        const smartAccount = await createSmartAccount(activeWalletClient)
         setSmartAccount(smartAccount)
       } catch (err) {
         console.error('Error initializing smart account:', err)
@@ -36,7 +40,7 @@ export function useSmartAccount() {
     }
 
     init()
-  }, [address, session, walletClient])
+  }, [address, session, walletClient, embeddedWalletClient])
 
   return {
     smartAccount,
