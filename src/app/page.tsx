@@ -1,12 +1,11 @@
 import { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Next.js SIWE Kit",
-  description: "Sign-In with Ethereum Authentication Kit for Next.js",
-};
-
 import LandingPage from "@/components/pages/LandingPage";
 
+export const metadata: Metadata = {
+  title: "Next EVMKit",
+  description: "Your all-in-one starter kit for building web3 applications",
+};
+
 export default function Home() {
-  return <LandingPage />;
+  return <LandingPage />
 }

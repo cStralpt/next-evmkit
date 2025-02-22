@@ -4,15 +4,32 @@ import { signIn } from "next-auth/react"
 import { MessageCircle, Mail, Apple, Loader2 } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
+import { useSmartAccount } from "@/hooks/useSmartAccount"
+import { useAccount } from "wagmi"
 
 export default function SignInForm() {
   const [isLoading, setIsLoading] = useState<string | null>(null)
+  const { smartAccount, loading: smartAccountLoading } = useSmartAccount()
+  const { address } = useAccount()
 
   const handleSignIn = async (provider: string) => {
     try {
       setIsLoading(provider)
-      await signIn(provider, { callbackUrl: "/" })
+      const result = await signIn(provider, {
+        callbackUrl: "/",
+        redirect: true,
+      })
+      
+      if (result?.error) {
+        toast.error(result.error)
+        return
+      }
+
+      if (address && !smartAccountLoading && !smartAccount) {
+        toast.success("Creating your smart account...")
+      }
     } catch (error) {
+      console.error("Sign in error:", error)
       toast.error("Something went wrong. Please try again.")
     } finally {
       setIsLoading(null)
@@ -24,7 +41,7 @@ export default function SignInForm() {
       <div className="grid gap-4">
         <button
           onClick={() => handleSignIn("discord")}
-          disabled={isLoading === "discord"}
+          disabled={isLoading === "discord" || smartAccountLoading}
           className="flex items-center justify-center gap-2 rounded-lg bg-[#5865F2] px-8 py-3 text-white hover:bg-[#4752C4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading === "discord" ? (
@@ -36,7 +53,7 @@ export default function SignInForm() {
         </button>
         <button
           onClick={() => handleSignIn("google")}
-          disabled={isLoading === "google"}
+          disabled={isLoading === "google" || smartAccountLoading}
           className="flex items-center justify-center gap-2 rounded-lg bg-white px-8 py-3 text-gray-600 shadow-md hover:bg-gray-50 transition-colors border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading === "google" ? (
@@ -48,7 +65,7 @@ export default function SignInForm() {
         </button>
         <button
           onClick={() => handleSignIn("apple")}
-          disabled={isLoading === "apple"}
+          disabled={isLoading === "apple" || smartAccountLoading}
           className="flex items-center justify-center gap-2 rounded-lg bg-black px-8 py-3 text-white hover:bg-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading === "apple" ? (
@@ -72,7 +89,7 @@ export default function SignInForm() {
       <div className="flex items-center justify-center">
         <button
           onClick={() => handleSignIn("credentials")}
-          disabled={isLoading === "credentials"}
+          disabled={isLoading === "credentials" || smartAccountLoading}
           className="text-sm text-muted-foreground underline hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Web3 Wallet

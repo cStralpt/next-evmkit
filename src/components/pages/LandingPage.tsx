@@ -1,76 +1,151 @@
 "use client";
 
-import { useSiweAuth } from "@/hooks/useSiweAuth";
+import { useSmartAccount } from "@/hooks/useSmartAccount";
 import { useAccount } from "wagmi";
+import { useSession } from "next-auth/react";
+import { Loader2, Wallet, UserCircle2, ArrowRight } from "lucide-react";
+import { TestTransaction } from "../TestTransaction";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useSiweAuth } from "@/hooks/useSiweAuth";
 import { SiweButton } from "@/components/auth/SiweButton";
 
 export default function LandingPage() {
-  const { isAuthenticated, loading, user } = useSiweAuth();
-  const { isConnected } = useAccount();
+  const { smartAccount, loading: smartAccountLoading } = useSmartAccount();
+  const { address, isConnected } = useAccount();
+  const { data: session } = useSession();
+  const { isAuthenticated, loading: siweLoading, user } = useSiweAuth();
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-retro-bg relative">
-      <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10 z-0" />
-      <div className="max-w-2xl w-full px-4 relative z-10">
-        <div className="text-center mb-12">
-          <div className="inline-block">
-            <h1 className="text-6xl font-bold mb-4 text-retro-purple tracking-tight relative">
-              <span className="relative inline-block">
-                Next.js SIWE Kit
-                <div className="absolute -inset-1 bg-retro-blue opacity-20 blur-sm rounded-lg" />
-              </span>
-            </h1>
-          </div>
-          <p className="text-retro-purple/80 text-lg">
-            A minimal implementation of Sign-In with Ethereum
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
+      <div className="container mx-auto px-4 py-16">
+        <div className="text-center mb-16">
+          <h1 className="text-5xl font-bold mb-6">Next EVMKit</h1>
+          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+            Your all-in-one starter kit for building web3 applications with social logins, 
+            smart accounts, and gasless transactions.
           </p>
         </div>
 
-        <div className="bg-white/40 backdrop-blur-sm border-2 border-retro-purple/10 rounded-lg p-8 shadow-[4px_4px_0px_0px_rgba(67,53,167,0.3)] relative">
-          <div className="space-y-6">
-            {!isConnected ? (
-              <div className="space-y-4">
-                <p className="text-center text-retro-purple/80">
-                  Connect your wallet to get started
-                </p>
-                <div className="flex justify-center relative z-20">
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          {/* Status Card */}
+          <div className="bg-gray-800/50 p-6 rounded-xl backdrop-blur-sm">
+            <h2 className="text-2xl font-semibold mb-4">Connection Status</h2>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <Wallet className="h-5 w-5 text-blue-400" />
+                <span>Wallet: {address ? 
+                  `${address.slice(0, 6)}...${address.slice(-4)}` : 
+                  "Not Connected"}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <UserCircle2 className="h-5 w-5 text-green-400" />
+                <span>Session: {session ? 
+                  `${session.user?.email || "Authenticated"}` : 
+                  isAuthenticated ? 
+                  "Authenticated with SIWE" :
+                  "Not Signed In"}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <ArrowRight className="h-5 w-5 text-purple-400" />
+                <span>Smart Account: {smartAccountLoading ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Loading...
+                  </span>
+                ) : smartAccount ? (
+                  "Ready"
+                ) : (
+                  "Not Created"
+                )}</span>
+              </div>
+            </div>
+
+            {/* Authentication Actions */}
+            <div className="mt-6 space-y-4">
+              {!isConnected ? (
+                <div className="flex justify-center">
                   <ConnectButton />
                 </div>
-              </div>
-            ) : !isAuthenticated ? (
-              <div className="space-y-4">
-                <p className="text-center text-retro-purple/80">
-                  Sign a message to prove ownership of your wallet
-                </p>
-                <div className="relative z-20">
+              ) : !isAuthenticated && !session ? (
+                <div className="flex justify-center">
                   <SiweButton />
                 </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <h2 className="text-2xl font-semibold text-center text-retro-orange">
-                  Welcome! 👋
-                </h2>
-                <div className="bg-white/60 border-2 border-retro-blue/20 rounded-lg p-4">
-                  <p className="text-retro-purple/80 mb-2">Connected Address:</p>
-                  <p className="font-mono break-all text-retro-purple">{user.walletAddress}</p>
-                </div>
-                <p className="text-center text-retro-orange flex items-center justify-center gap-2">
-                  <span className="w-2 h-2 bg-retro-orange rounded-full animate-pulse" />
-                  Successfully authenticated with Ethereum
-                </p>
-              </div>
-            )}
+              ) : null}
+            </div>
+          </div>
 
-            {loading && (
-              <div className="text-center text-retro-purple/60">
-                <p>Loading...</p>
-              </div>
-            )}
+          {/* Features Card */}
+          <div className="bg-gray-800/50 p-6 rounded-xl backdrop-blur-sm">
+            <h2 className="text-2xl font-semibold mb-4">Features</h2>
+            <ul className="space-y-3 text-gray-300">
+              <li className="flex items-center gap-2">
+                <span className="h-2 w-2 bg-blue-400 rounded-full" />
+                Social Login Integration
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="h-2 w-2 bg-green-400 rounded-full" />
+                Web3 Wallet Support with SIWE
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="h-2 w-2 bg-purple-400 rounded-full" />
+                Smart Account Creation
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="h-2 w-2 bg-pink-400 rounded-full" />
+                Gasless Transactions
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Test Transaction Section */}
+        <div className="mt-12 max-w-4xl mx-auto">
+          <div className="bg-gray-800/50 p-6 rounded-xl backdrop-blur-sm">
+            <TestTransaction />
+          </div>
+        </div>
+
+        {/* Documentation Links */}
+        <div className="mt-16 text-center">
+          <h3 className="text-xl font-semibold mb-4">Learn More</h3>
+          <div className="flex justify-center gap-4">
+            <a 
+              href="https://docs.biconomy.io"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              Biconomy Docs
+            </a>
+            <a 
+              href="https://wagmi.sh"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              Wagmi Docs
+            </a>
+            <a 
+              href="https://www.rainbowkit.com/docs/introduction"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              RainbowKit Docs
+            </a>
+            <a 
+              href="https://docs.login.xyz/integrations/nextauth.js"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              SIWE Docs
+            </a>
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 } 

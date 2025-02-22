@@ -159,4 +159,6 @@ export const authOptions: NextAuthOptions = {
       return token
     },
   },
+  // Add debug logs in development
+  debug: process.env.NODE_ENV === "development",
 }
